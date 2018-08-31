@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{B57E7D5E-1AF5-4CBE-A26D-DA8FB8A7DD38}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>LLInjector</RootNamespace>
-    <AssemblyName>LLInjector</AssemblyName>
+    <RootNamespace>LLLoader</RootNamespace>
+    <AssemblyName>LLLoader</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
