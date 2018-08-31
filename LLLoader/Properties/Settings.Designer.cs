@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace LLInjector.Properties
+namespace LLLoader.Properties
 {
 
 

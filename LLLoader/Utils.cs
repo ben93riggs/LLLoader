@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LLInjector
+namespace LLLoader
 {
     public class Utils
     {

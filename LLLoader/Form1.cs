@@ -2,25 +2,33 @@
 using System.Diagnostics;
 using System.Text;
 using System.Windows.Forms;
+using MaterialSkin;
+using MaterialSkin.Controls;
 
-namespace LLInjector
+namespace LLLoader
 {
-    public partial class Form1 : Form
+    public partial class Form1 : MaterialForm
     {
         private IntPtr _loadedModule = IntPtr.Zero;
 
         public Form1()
         {
+            var materialSkinManager = MaterialSkinManager.Instance;
+            materialSkinManager.AddFormToManage(this);
+            materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
+            //materialSkinManager.ColorScheme = new ColorScheme(Primary.BlueGrey800, Primary.BlueGrey900, Primary.BlueGrey500, Accent.LightBlue200, TextShade.WHITE);
+
             InitializeComponent();
-            PInvoke.AllocConsole();
+            //PInvoke.AllocConsole();
             timer1.Start();
+            timer2.Start();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             var proc = Process.GetProcessesByName(textBox2.Text)[0];
 
-            _loadedModule = InjectDll(textBox1.Text, proc.Id);
+            _loadedModule = InjectDll(materialRaisedButton1.Text, proc.Id);
         }
 
         private IntPtr InjectDll(string dllPath, int id)
@@ -111,7 +119,33 @@ namespace LLInjector
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            button2.Enabled = _loadedModule != IntPtr.Zero;
+            materialRaisedButton2.Enabled = _loadedModule != IntPtr.Zero;
+        }
+
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            //refresh the process listbox
+            //check if the process closed so we can reset
+            //
+        }
+
+        private void materialRaisedButton1_Click(object sender, EventArgs e)
+        {
+            var proc = Process.GetProcessesByName(textBox2.Text)[0];
+
+            _loadedModule = InjectDll(materialSingleLineTextField1.Text, proc.Id);
+        }
+
+        private void materialRaisedButton2_Click(object sender, EventArgs e)
+        {
+            var proc = Process.GetProcessesByName(textBox2.Text)[0];
+
+            Console.WriteLine(UnloadDll(proc.Id, _loadedModule) ? "Success!" : "Failure");
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
