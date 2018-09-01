@@ -19,24 +19,15 @@ namespace LLLoader
             //materialSkinManager.ColorScheme = new ColorScheme(Primary.BlueGrey800, Primary.BlueGrey900, Primary.BlueGrey500, Accent.LightBlue200, TextShade.WHITE);
 
             InitializeComponent();
-            //PInvoke.AllocConsole();
-            timer1.Start();
             timer2.Start();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private IntPtr LoadDll(string dllPath, int id)
         {
-            var proc = Process.GetProcessesByName(textBox2.Text)[0];
-
-            _loadedModule = InjectDll(materialRaisedButton1.Text, proc.Id);
-        }
-
-        private IntPtr InjectDll(string dllPath, int id)
-        {
-            IntPtr hProcess = PInvoke.OpenProcess(ExtendedTypes.ProcessAccessFlags.All, false, id);
-
             try
             {
+                IntPtr hProcess = PInvoke.OpenProcess(ExtendedTypes.ProcessAccessFlags.All, false, id);
+
                 IntPtr hModule;
 
                 var fnLoadLibraryW = PInvoke.GetProcAddress(PInvoke.GetModuleHandleA("kernel32.dll"), "LoadLibraryW");
@@ -71,7 +62,7 @@ namespace LLLoader
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                logBox.AppendText("\n" + e.Message);
                 return IntPtr.Zero;
             }
         }
@@ -99,52 +90,93 @@ namespace LLLoader
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                logBox.AppendText("\n" + e.Message);
                 return false;
             }
             
         }
 
-        private void label1_Click(object sender, EventArgs e)
+        private void loadButton_Click(object sender, EventArgs e)
         {
+            try
+            {
+                //should make sure GetProcessesByName returns an array of length > 0 or throw a descriptive exception.
+                Process proc = Process.GetProcessesByName(processTextbox.Text)[0];
 
+                _loadedModule = LoadDll(dllPathTextbox.Text, proc.Id);
+            }
+            catch (Exception ex)
+            {
+                logBox.AppendText("\n" + ex.Message);
+                return;
+            }
+
+            unloadButton.Visible = true;
+
+            logBox.AppendText("\n" + $@"Successfully loaded dll into [{processTextbox.Text}]. Handle: [{_loadedModule}]");
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void unloadButton_Click(object sender, EventArgs e)
         {
-            var proc = Process.GetProcessesByName(textBox2.Text)[0];
+            try
+            {
+                Process proc = Process.GetProcessesByName(processTextbox.Text)[0];
+                logBox.AppendText("\n" + (UnloadDll(proc.Id, _loadedModule) ? "Success!" : "Failure"));
+            }
+            catch (Exception exception)
+            {
+                logBox.AppendText("\n" + exception.Message);
+                return;
+            }
 
-            Console.WriteLine(UnloadDll(proc.Id, _loadedModule) ? "Success!" : "Failure");
+            unloadButton.Visible = false;
+
+            logBox.AppendText("\n" + $@"Successfully called ProcessDetach in [{processTextbox.Text}] for the previously loaded module.");
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void processListbox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            materialRaisedButton2.Enabled = _loadedModule != IntPtr.Zero;
+            processTextbox.Text = processListbox.Items[processListbox.SelectedIndex].ToString();
         }
 
+        private void dllPathTextbox_DoubleClick(object sender, EventArgs e)
+        {
+            var file = new OpenFileDialog();
+            if (file.ShowDialog() == DialogResult.OK)
+            {
+                dllPathTextbox.Text = file.FileName;
+            }
+        }
         private void timer2_Tick(object sender, EventArgs e)
         {
             //refresh the process listbox
+            var processList = Process.GetProcesses();
+            foreach (Process process in processList)
+            {
+                if (string.IsNullOrEmpty(process.ProcessName))
+                    continue;
+
+                if (process.Id <= 0)
+                    continue;
+
+                if (processListbox.Items.Contains(process.ProcessName))
+                    continue;
+
+                processListbox.Items.Add(process.ProcessName);
+            }
+
             //check if the process closed so we can reset
-            //
-        }
 
-        private void materialRaisedButton1_Click(object sender, EventArgs e)
-        {
-            var proc = Process.GetProcessesByName(textBox2.Text)[0];
-
-            _loadedModule = InjectDll(materialSingleLineTextField1.Text, proc.Id);
-        }
-
-        private void materialRaisedButton2_Click(object sender, EventArgs e)
-        {
-            var proc = Process.GetProcessesByName(textBox2.Text)[0];
-
-            Console.WriteLine(UnloadDll(proc.Id, _loadedModule) ? "Success!" : "Failure");
-        }
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
+            if (Process.GetProcessesByName(processTextbox.Text).Length > 0) //if we found the target process
+            {
+                if (_loadedModule != IntPtr.Zero) //and our handle to the module is still alive
+                    unloadButton.Visible = true;
+            }
+            else
+            {
+                _loadedModule = IntPtr.Zero;
+                unloadButton.Visible = false;
+            }
 
         }
     }
