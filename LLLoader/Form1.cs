@@ -13,7 +13,7 @@ namespace LLLoader
 
         public Form1()
         {
-            var materialSkinManager = MaterialSkinManager.Instance;
+            MaterialSkinManager materialSkinManager = MaterialSkinManager.Instance;
             materialSkinManager.AddFormToManage(this);
             materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
             //materialSkinManager.ColorScheme = new ColorScheme(Primary.BlueGrey800, Primary.BlueGrey900, Primary.BlueGrey500, Accent.LightBlue200, TextShade.WHITE);
@@ -30,13 +30,13 @@ namespace LLLoader
 
                 IntPtr hModule;
 
-                var fnLoadLibraryW = PInvoke.GetProcAddress(PInvoke.GetModuleHandleA("kernel32.dll"), "LoadLibraryW");
+                IntPtr fnLoadLibraryW = PInvoke.GetProcAddress(PInvoke.GetModuleHandleA("kernel32.dll"), "LoadLibraryW");
 
                 if (fnLoadLibraryW == IntPtr.Zero)
                     throw new Exception("Unable to locate the LoadLibraryW entry point");
 
                 // Create a wchar_t * in the remote process which points to the unicode version of the dll path.
-                var pLib = Utils.CreateRemotePointer(hProcess, Encoding.Unicode.GetBytes(dllPath + "\0"), 0x04);
+                IntPtr pLib = Utils.CreateRemotePointer(hProcess, Encoding.Unicode.GetBytes(dllPath + "\0"), 0x04);
 
                 if (pLib == IntPtr.Zero)
                     throw new InvalidOperationException("Failed to allocate memory in the remote process");
@@ -44,14 +44,14 @@ namespace LLLoader
                 try
                 {
                     // Call LoadLibraryW in the remote process by using CreateRemoteThread.
-                    uint hMod = Utils.RunThread(hProcess, fnLoadLibraryW, (uint)pLib.ToInt32(), 10000);
+                    uint hMod = Utils.RunThread(hProcess, fnLoadLibraryW, pLib, 10000);
 
                     if (hMod == uint.MaxValue)
                         throw new Exception("Error occurred when calling function in the remote process");
                     else if (hMod == 0)
                         throw new Exception("Failed to load module into remote process. Error code: " + Utils.GetLastErrorEx(hProcess).ToString());
                     else
-                        hModule = new IntPtr((int)hMod);
+                        hModule = new IntPtr(hMod);
                 }
                 finally
                 {
@@ -78,7 +78,7 @@ namespace LLLoader
                 if (fnFreeLibrary == IntPtr.Zero)
                     throw new Exception("Unable to find necessary function entry points in the remote process");
 
-                var hMod = Utils.RunThread(hProcess, fnFreeLibrary, (uint)hModule, 10000);
+                uint hMod = Utils.RunThread(hProcess, fnFreeLibrary, hModule, 10000);
 
                 if (hMod == uint.MaxValue)
                     throw new Exception("Error occurred when calling function in the remote process");

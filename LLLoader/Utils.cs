@@ -9,8 +9,8 @@ namespace LLLoader
             if (pData == null || hProcess == IntPtr.Zero)
                 return IntPtr.Zero;
 
-            var lpAddress = PInvoke.VirtualAllocEx(hProcess, IntPtr.Zero, (uint)pData.Length, 12288, flProtect);
-            if (lpAddress != IntPtr.Zero && PInvoke.WriteProcessMemory(hProcess, lpAddress, pData, pData.Length, out var lpNumberOfBytesRead) && lpNumberOfBytesRead == pData.Length || lpAddress == IntPtr.Zero)
+            IntPtr lpAddress = PInvoke.VirtualAllocEx(hProcess, IntPtr.Zero, (uint)pData.Length, 12288, flProtect);
+            if (lpAddress != IntPtr.Zero && PInvoke.WriteProcessMemory(hProcess, lpAddress, pData, pData.Length, out uint lpNumberOfBytesRead) && lpNumberOfBytesRead == pData.Length || lpAddress == IntPtr.Zero)
                 return lpAddress;
 
             PInvoke.VirtualFreeEx(hProcess, lpAddress, 0, 32768);
@@ -20,11 +20,11 @@ namespace LLLoader
         }
 
         //will return -1 (uint.MaxValue == -1 as a signed integer) if it fails.
-        public static uint RunThread(IntPtr hProcess, IntPtr lpStartAddress, uint lpParam, int timeout = 1000)
+        public static uint RunThread(IntPtr hProcess, IntPtr lpStartAddress, IntPtr lpParam, int timeout = 1000)
         {
-            var dwThreadRet = uint.MaxValue;
+            uint dwThreadRet = uint.MaxValue;
 
-            var hThread = PInvoke.CreateRemoteThread(hProcess, 0, 0, lpStartAddress, lpParam, 0, 0);
+            IntPtr hThread = PInvoke.CreateRemoteThread(hProcess, 0, 0, lpStartAddress, lpParam, 0, 0);
 
             if (hThread == IntPtr.Zero)
                 return dwThreadRet;
@@ -38,7 +38,7 @@ namespace LLLoader
         public static uint GetLastErrorEx(IntPtr hProcess)
         {
             IntPtr fnGetLastError = PInvoke.GetProcAddress(PInvoke.GetModuleHandleA("kernel32.dll"), "GetLastError");
-            return RunThread(hProcess, fnGetLastError, 0);
+            return RunThread(hProcess, fnGetLastError, IntPtr.Zero);
         }
     }
 }
