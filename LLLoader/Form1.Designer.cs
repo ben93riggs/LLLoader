@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.processListbox = new System.Windows.Forms.ListBox();
             this.timer2 = new System.Windows.Forms.Timer(this.components);
             this.loadButton = new MaterialSkin.Controls.MaterialRaisedButton();
@@ -179,6 +180,7 @@
             this.Controls.Add(this.unloadButton);
             this.Controls.Add(this.loadButton);
             this.Controls.Add(this.processListbox);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "LLLoader";
             this.ResumeLayout(false);
